@@ -18,14 +18,29 @@ interface ChangelogItem {
 }
 
 type UserRole = "standard" | "express" | "qc" | null;
+type DevicePlatform = "Android" | "iOS" | "unknown";
 
 export default function Home() {
   const [origin, setOrigin] = useState("");
   const [activeTab, setActiveTab] = useState<"builds" | "changelog">("builds");
   const [selectedRole, setSelectedRole] = useState<UserRole>(null);
+  const [devicePlatform, setDevicePlatform] =
+    useState<DevicePlatform>("unknown");
 
   useEffect(() => {
     setOrigin(window.location.origin);
+
+    // Detect user's device platform
+    const userAgent =
+      navigator.userAgent || navigator.vendor || (window as any).opera;
+    if (/android/i.test(userAgent)) {
+      setDevicePlatform("Android");
+    } else if (
+      /iPad|iPhone|iPod/.test(userAgent) ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+    ) {
+      setDevicePlatform("iOS");
+    }
   }, []);
 
   const builds: Build[] = [
@@ -147,11 +162,11 @@ export default function Home() {
     return `itms-services://?action=download-manifest&url=${origin}${plistUrl}`;
   };
 
-  // Filter builds based on selected role
+  // Filter builds based on selected role and prioritize by device platform
   const getFilteredBuilds = () => {
     if (!selectedRole) return [];
 
-    return builds.filter((build) => {
+    let filteredBuilds = builds.filter((build) => {
       if (selectedRole === "standard" && build.name.includes("Standard")) {
         return true;
       }
@@ -159,11 +174,25 @@ export default function Home() {
         return true;
       }
       if (selectedRole === "qc" && build.name.includes("Standard")) {
-        // QC executives use the Standard app
         return true;
       }
       return false;
     });
+
+    // Sort builds to prioritize the user's device platform
+    if (devicePlatform !== "unknown") {
+      filteredBuilds.sort((a, b) => {
+        if (a.platform === devicePlatform && b.platform !== devicePlatform) {
+          return -1;
+        }
+        if (a.platform !== devicePlatform && b.platform === devicePlatform) {
+          return 1;
+        }
+        return 0;
+      });
+    }
+
+    return filteredBuilds;
   };
 
   // Role selection screen
@@ -338,10 +367,10 @@ export default function Home() {
             {/* Role indicator */}
             <div className="mb-6 flex justify-center">
               <div className="bg-[var(--primary-50)] text-[var(--primary-900)] px-4 py-2 rounded-full flex items-center">
-                <span className="font-medium">{getRoleInfo()}</span>
                 <button
                   onClick={() => setSelectedRole(null)}
-                  className="ml-2 text-[var(--primary-700)] hover:text-[var(--primary-900)]"
+                  className="mr-2 p-1 rounded-full bg-[var(--primary-100)] hover:bg-[var(--primary-200)] transition-colors"
+                  aria-label="Back to role selection"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -349,15 +378,16 @@ export default function Home() {
                     viewBox="0 0 24 24"
                     strokeWidth={1.5}
                     stroke="currentColor"
-                    className="w-5 h-5"
+                    className="w-5 h-5 text-[var(--primary-700)]"
                   >
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
+                      d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
                     />
                   </svg>
                 </button>
+                <span className="font-medium">{getRoleInfo()}</span>
               </div>
             </div>
 
