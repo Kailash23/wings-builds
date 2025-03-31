@@ -1,0 +1,7 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="60" cy="60" r="60" fill="#0058A5"/>
+  <path d="M90 45C90 45 75 65 60 75C45 65 30 45 30 45" stroke="white" stroke-width="8" stroke-linecap="round"/>
+  <path d="M90 60C90 60 75 80 60 90C45 80 30 60 30 60" stroke="white" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="60" cy="35" r="10" fill="white"/>
+  <text x="60" y="38" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold" fill="#0058A5">WINGS</text>
+</svg> 
